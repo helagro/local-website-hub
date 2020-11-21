@@ -1,6 +1,8 @@
 from http.server import HTTPServer, BaseHTTPRequestHandler
 import os
 import env
+import fileinput
+import subprocess
 
 class StaticServer(BaseHTTPRequestHandler):
    
@@ -25,18 +27,35 @@ def getFullPath(path):
     filename = root + path
 
     if path == '/':
+        fillInfoFile()
         filename = root + '/index.html'
-    
-    #replace with your own names
-    elif path == "/day-eval":
-        #replace with your own website root paths 
-        root = env.dayEvalRoot
-        return getFullPath("/")
-    elif path == "/pause-checklist":
-        root = env.pauseChecklist
-        return getFullPath("/")
+    elif path == "/update":
+        updateWebsites()
+        filename = 'static/updated.html'
 
+    for website in env.localWebsiteDirs:
+        if(path == "/" + website.name):
+            root = website.path
+            return getFullPath("/")
+    
     return filename
+
+
+def fillInfoFile():
+    f = open("static/addedWebsites.js", "w")
+
+    f.write("addedWebsites=[")
+    for website in env.localWebsiteDirs:
+        websiteArrString = '"{0}",'.format(website.name)
+        f.write(websiteArrString)
+    f.write("]")
+    f.close()   
+
+
+def updateWebsites():
+    for website in env.localWebsiteDirs:
+        subprocess.run(["git", "-C", website.path, "pull"])
+        subprocess.run(["git", "-C", website.path, "pull", "--recurse-submodules"])
 
 
 def getHeader(filename):
