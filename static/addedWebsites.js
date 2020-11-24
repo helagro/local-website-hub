@@ -1,1 +1,1 @@
-addedWebsites=["day-eval","pause-checklist",]
+addedWebsites=[]

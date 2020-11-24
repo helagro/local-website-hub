@@ -2,7 +2,10 @@ from http.server import HTTPServer, BaseHTTPRequestHandler
 import os
 import env
 import fileinput
+from pathlib import Path
 import subprocess
+
+mainWebsiteFolderPath = str(Path.home()) + "/github" if not hasattr(env, "customMainWebsiteFolderPath") else getattr(env, "customMainWebsiteFolderPath")
 
 class StaticServer(BaseHTTPRequestHandler):
    
@@ -28,15 +31,20 @@ def getFullPath(path):
 
     if path == '/':
         fillInfoFile()
-        filename = root + '/index.html'
+        return root + '/index.html'
     elif path == "/update":
         updateWebsites()
-        filename = 'static/updated.html'
+        return 'static/updated.html'
 
     for website in env.localWebsiteDirs:
         if(path == "/" + website.name):
             root = website.path
             return getFullPath("/")
+
+    pathIfIsInGithubFolder = mainWebsiteFolderPath + path
+    if os.path.isdir(pathIfIsInGithubFolder):
+        root = pathIfIsInGithubFolder
+        return getFullPath("/")
     
     return filename
 
