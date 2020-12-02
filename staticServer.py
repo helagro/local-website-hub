@@ -41,9 +41,9 @@ def getFullPath(path):
             root = website.path
             return getFullPath("/")
 
-    pathIfIsInGithubFolder = mainWebsiteFolderPath + path
-    if os.path.isdir(pathIfIsInGithubFolder):
-        root = pathIfIsInGithubFolder
+    pathIfInLocalWebsiteFolder = mainWebsiteFolderPath + path
+    if os.path.isdir(pathIfInLocalWebsiteFolder):
+        root = pathIfInLocalWebsiteFolder
         return getFullPath("/")
     
     return filename
