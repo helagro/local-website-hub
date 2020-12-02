@@ -5,7 +5,7 @@ import fileinput
 from pathlib import Path
 import subprocess
 
-mainWebsiteFolderPath = str(Path.home()) + "/github" if not hasattr(env, "customMainWebsiteFolderPath") else getattr(env, "customMainWebsiteFolderPath")
+mainWebsiteFolderPath = os.path.dirname(os.path.dirname(__file__)) + "/localWebsites" if not hasattr(env, "customMainWebsiteFolderPath") else getattr(env, "customMainWebsiteFolderPath")
 
 class StaticServer(BaseHTTPRequestHandler):
    
