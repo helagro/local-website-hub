@@ -6,6 +6,7 @@ from pathlib import Path
 import subprocess
 
 mainWebsiteFolderPath = os.path.dirname(os.path.dirname(__file__)) + "/localWebsites" if not hasattr(env, "customMainWebsiteFolderPath") else getattr(env, "customMainWebsiteFolderPath")
+localWebsiteDirs = [] if not hasattr(env, "localWebsiteDirs") else getattr(env, "localWebsiteDirs")
 
 class StaticServer(BaseHTTPRequestHandler):
    
@@ -36,7 +37,7 @@ def getFullPath(path):
         updateWebsites()
         return 'static/updated.html'
 
-    for website in env.localWebsiteDirs:
+    for website in localWebsiteDirs:
         if(path == "/" + website.name):
             root = website.path
             return getFullPath("/")
@@ -53,7 +54,7 @@ def fillInfoFile():
     f = open("static/addedWebsites.js", "w")
 
     f.write("addedWebsites=[")
-    for website in env.localWebsiteDirs:
+    for website in localWebsiteDirs:
         websiteArrString = '"{0}",'.format(website.name)
         f.write(websiteArrString)
     f.write("]")
@@ -61,7 +62,7 @@ def fillInfoFile():
 
 
 def updateWebsites():
-    for website in env.localWebsiteDirs:
+    for website in localWebsiteDirs:
         subprocess.run(["git", "-C", website.path, "pull"])
         subprocess.run(["git", "-C", website.path, "pull", "--recurse-submodules"])
 
