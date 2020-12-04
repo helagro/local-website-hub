@@ -58,14 +58,6 @@ def generateDirInfoPage(dir):
 
     return "static/index.html"
 
-
-def updateWebsites(dir):
-    folders = fileManager.getFolders(dir)
-
-    for website in folders:
-        subprocess.run(["git", "-C", website.path, "pull", "--recurse-submodules"])
-
-
 def getHeader(filename):
     header = "text/html"
     if filename[-4:] == '.css':
