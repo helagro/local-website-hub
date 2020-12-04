@@ -4,6 +4,7 @@ import env
 import fileinput
 from pathlib import Path
 import subprocess
+import fileManager
 
 mainWebsiteFolderPath = os.path.dirname(os.path.dirname(__file__)) + "/localWebsites" if not hasattr(env, "customMainWebsiteFolderPath") else getattr(env, "customMainWebsiteFolderPath")
 root = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static')
@@ -32,15 +33,10 @@ def getFullPath(path):
         if os.path.isfile(indexPath):
             return indexPath
 
-        fillInfoFile()
+        return "static/index.html"
     elif path == "/update":
-        updateWebsites()
+        updateWebsites(root)
         return 'static/updated.html'
-
-    for website in localWebsiteDirs:
-        if(path == "/" + website.name):
-            root = website.path
-            return getFullPath("/")
 
     pathIfInLocalWebsiteFolder = mainWebsiteFolderPath + path
     if os.path.isdir(pathIfInLocalWebsiteFolder):
@@ -50,23 +46,15 @@ def getFullPath(path):
     return filename
 
 
-def fillInfoFile():
-    f = open("static/addedWebsites.js", "w")
-
-    f.write("addedWebsites=[")
-    for website in localWebsiteDirs:
-        websiteArrString = '"{0}",'.format(website.name)
-        f.write(websiteArrString)
-    f.write("]")
-    f.close()   
+def generateDirInfoPage(dir):
+    dirs = fileManager.getFolders(dir)
+    fileManager.fillEntriesArray("static/dirsInPath.js")
 
 
-def getFolders(path):
-    return next(os.walk(path))[1]
+def updateWebsites(dir):
+    folders = fileManager.getFolders(dir)
 
-
-def updateWebsites():
-    for website in localWebsiteDirs:
+    for website in folders:
         subprocess.run(["git", "-C", website.path, "pull", "--recurse-submodules"])
 
 
