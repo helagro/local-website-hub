@@ -6,7 +6,7 @@ from pathlib import Path
 import subprocess
 
 mainWebsiteFolderPath = os.path.dirname(os.path.dirname(__file__)) + "/localWebsites" if not hasattr(env, "customMainWebsiteFolderPath") else getattr(env, "customMainWebsiteFolderPath")
-localWebsiteDirs = [] if not hasattr(env, "localWebsiteDirs") else getattr(env, "localWebsiteDirs")
+root = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static')
 
 class StaticServer(BaseHTTPRequestHandler):
    
@@ -20,19 +20,19 @@ class StaticServer(BaseHTTPRequestHandler):
 
         with open(filename, 'rb') as fh:
             html = fh.read()
-            #html = bytes(html, 'utf8')
             self.wfile.write(html)
 
-
-root = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static')
 
 def getFullPath(path):
     global root
     filename = root + path
 
     if path == '/':
+        indexPath = root + "/index.html"
+        if os.path.isfile(indexPath):
+            return indexPath
+
         fillInfoFile()
-        return root + '/index.html'
     elif path == "/update":
         updateWebsites()
         return 'static/updated.html'
@@ -61,9 +61,12 @@ def fillInfoFile():
     f.close()   
 
 
+def getFolders(path):
+    return next(os.walk(path))[1]
+
+
 def updateWebsites():
     for website in localWebsiteDirs:
-        subprocess.run(["git", "-C", website.path, "pull"])
         subprocess.run(["git", "-C", website.path, "pull", "--recurse-submodules"])
 
 
