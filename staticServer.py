@@ -5,14 +5,28 @@ import fileinput
 from pathlib import Path
 import subprocess
 import fileManager
+from urllib import parse
 
 mainWebsiteFolderPath = os.path.dirname(os.path.dirname(__file__)) + "/localWebsites" if not hasattr(env, "customMainWebsiteFolderPath") else getattr(env, "customMainWebsiteFolderPath")
-root = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static')
 
 class StaticServer(BaseHTTPRequestHandler):
    
     def do_GET(self):
-        filename = getFullPath(self.path)
+        attr = parse.parse_qs(parse.urlsplit(self.path).query)
+        pathWithoutAttr = self.path.split("?")[0]
+        filename = getFullPath(pathWithoutAttr, attr)
+        
+        if os.path.isdir(filename):
+            self.send_response(301)
+
+            if os.path.isfile(filename + "/index.html"):
+                self.send_header("Location", pathWithoutAttr + "/index.html")
+            else:
+                self.send_header("Location", "/local-website-hub?p=" + filename)
+
+            self.end_headers()
+            return
+            
 
         self.send_response(200)
         header = getHeader(filename)
@@ -24,31 +38,25 @@ class StaticServer(BaseHTTPRequestHandler):
             self.wfile.write(html)
 
 
-def getFullPath(path):
-    global root
-    filename = root + path
+def getFullPath(path, attr):
+    splittedPath = path.split("/")
+    if(splittedPath[1].startswith("local-website-hub")):  
+        if(len(splittedPath) == 2):
+            p = mainWebsiteFolderPath if (not "p" in attr) else attr["p"][0]
 
-    if path == '/':
-        indexPath = root + "/index.html"
-        if os.path.isfile(indexPath):
-            return indexPath
+            generateDirInfoPage(p)
+            return os.path.dirname(__file__) + "/static/"
 
-        return "static/index.html"
-    elif path == "/update":
-        updateWebsites(root)
-        return 'static/updated.html'
+        return os.path.dirname(__file__) + "/static/" + splittedPath[2]
 
-    pathIfInLocalWebsiteFolder = mainWebsiteFolderPath + path
-    if os.path.isdir(pathIfInLocalWebsiteFolder):
-        root = pathIfInLocalWebsiteFolder
-        return getFullPath("/")
-    
-    return filename
+    return mainWebsiteFolderPath + path
 
 
 def generateDirInfoPage(dir):
     dirs = fileManager.getFolders(dir)
-    fileManager.fillEntriesArray("static/dirsInPath.js")
+    fileManager.fillDirInfoFile("static/dirsInPath.js", dirs, dir)
+
+    return "static/index.html"
 
 
 def updateWebsites(dir):
@@ -68,5 +76,7 @@ def getHeader(filename):
         header = 'application/javascript'
     elif filename[-4:] == '.ico':
         header = 'image/x-icon'
+    elif filename[-4:] == '.svg':
+        header = 'image/svg+xml'
     
     return header

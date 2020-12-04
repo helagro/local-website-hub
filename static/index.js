@@ -1,8 +1,12 @@
+const dirNameViewer = document.getElementById("dirName")
 const websiteContainer = document.getElementById("websiteContainer")
 
-for(website of addedWebsites){
-    const websiteSpan = document.createElement("p")
-    websiteSpan.innerHTML = website
+dirNameViewer.innerHTML = dirPath
 
-    websiteContainer.appendChild(websiteSpan)
+for(website of entries){
+    const websiteLink = document.createElement("a")
+    websiteLink.innerHTML = website
+    websiteLink.href = website
+
+    websiteContainer.appendChild(websiteLink)
 }
